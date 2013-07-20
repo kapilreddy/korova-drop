@@ -199,12 +199,14 @@
              source-node (play-sound-buff buff)]
          (reset! analyzer (sound-+>display source-node))
          (recur))))
-    (go
-     (loop [data []]
-       (<! (timeout 50))
-       (if @analyzer
-         (recur (sound->display @analyzer data))
-         (recur data))))
+    (go-loop
+     (<! (timeout 50))
+     (.requestAnimationFrame js/window #(put! ui-chan %)))
+    (go (loop [data []]
+          (let [frame-time (<! ui-chan)]
+            (if @analyzer
+              (recur (sound->display @analyzer data))
+              (recur data)))))
     (go-loop (let [files (<! files-chan)
                    file (aget files 0)
                    audio (<! (local-file->chan file))]
