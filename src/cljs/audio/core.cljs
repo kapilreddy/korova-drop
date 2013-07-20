@@ -189,9 +189,13 @@
         ui-chan (chan)
         analyzer (atom nil)
         canvas (by-id "canvas_graph")
-        canvas-context (.getContext canvas "2d")]
-    (set! (.-height canvas) (.-innerHeight js/window))
-    (set! (.-width canvas) (.-innerWidth js/window))
+        canvas-context (.getContext canvas "2d")
+        window-resize-chan (chan)
+        init-canvas (fn []
+                      (set! (.-height canvas) (.-innerHeight js/window))
+                      (set! (.-width canvas) (.-innerWidth js/window)))]
+    (.addEventListener js/window init-canvas)
+    (init-canvas)
     (go
      (loop [audio-source nil]
        (let [buff (<! audio-chan)
