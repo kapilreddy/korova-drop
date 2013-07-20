@@ -8,7 +8,8 @@
                  [org.clojure/clojurescript "0.0-1450"]
                  [core.async "0.1.0-SNAPSHOT"]]
   :source-paths ["src/cljs" "src/clj"]
-  :plugins [[lein-cljsbuild "0.3.2"]]
+  :plugins [[lein-cljsbuild "0.3.2"]
+            [lein-ring "0.8.6"]]
   :ring {:handler core/app}
   :repositories {"sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :cljsbuild {:builds [{:id "audio"
