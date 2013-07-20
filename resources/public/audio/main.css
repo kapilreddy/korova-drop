@@ -1,3 +1,32 @@
 body {
     background: #222;
 }
+
+#drop_zone{
+    height:150px;
+    width:150px;
+    background:red;
+    position: relative;
+    border: 1px white dashed;
+    left: -50%;
+    top: -50%;
+}
+
+#drop_zone_wrapper{
+    position:absolute;
+    margin-top: -75px;
+    transition-duration: 1s;
+    top: 50%;
+    left: 50%;
+}
+
+#drop_zone_wrapper.corner{
+    position:absolute;
+    margin-top: -75px;
+    top: 0%;
+    left: 0%;
+}
+
+#drop_zone_wrapper.loading #drop_zone{
+    background: yellow;
+}

@@ -3,7 +3,7 @@
             [clojure.string :as string]
             [clojure.browser.repl :as repl]
             [utils.helpers
-            :refer [event-chan set-html by-id]])
+            :refer [event-chan set-html by-id add-class remove-class]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
                    [utils.macros :refer [go-loop]]))
 
@@ -213,10 +213,14 @@
               (recur (sound->display @analyzer data))
               (recur data)))))
     (go-loop (let [files (<! files-chan)
-                   file (aget files 0)
-                   audio (<! (local-file->chan file))]
-               (put! audio-chan audio)))))
+                   file (aget files 0)]
+               (add-class (by-id "drop_zone_wrapper") "loading")
+               (let [audio (<! (local-file->chan file))]
+                 (remove-class (by-id "drop_zone_wrapper") "loading")
+                 (add-class (by-id "drop_zone_wrapper") "corner")
+                 (put! audio-chan audio))))))
 
 (-main)
 
-(repl/connect "http://localhsot:9000/repl")
+
+;; (repl/connect "http://cljs.helpshift.mobi/repl")
