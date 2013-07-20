@@ -189,16 +189,17 @@
         ui-chan (chan)
         analyzer (atom nil)
         canvas (by-id "canvas_graph")
-        canvas-context (.getContext canvas "2d")
-        audio-source (atom nil)]
+        canvas-context (.getContext canvas "2d")]
     (set! (.-height canvas) (.-innerHeight js/window))
     (set! (.-width canvas) (.-innerWidth js/window))
     (go
-     (loop []
+     (loop [audio-source nil]
        (let [buff (<! audio-chan)
              source-node (play-sound-buff buff)]
+         (when audio-source
+           (.noteOff audio-source 0))
          (reset! analyzer (sound-+>display source-node))
-         (recur))))
+         (recur source-node))))
     (go-loop
      (<! (timeout 50))
      (.requestAnimationFrame js/window #(put! ui-chan %)))
