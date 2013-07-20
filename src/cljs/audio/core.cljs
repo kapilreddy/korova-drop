@@ -7,7 +7,6 @@
   (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
                    [utils.macros :refer [go-loop]]))
 
-(def can-pref {:width 300 :height 300})
 
 (def audio-context (new window/webkitAudioContext))
 (def a-size 2048)
@@ -61,7 +60,15 @@
 
 (set! (.-color js/window) "#90fe2e")
 
-(def color ["#fde50f" "#feca2f" "#febf03" "#fd4403" "#fd4403"])
+(def color (mapcat identity [(repeat 4 "#fdf403")
+                             (repeat 4 "#fce303")
+                             (repeat 4 "#fed224")
+                             (repeat 4 "#f7c22f")
+                             (repeat 4 "#f7b52f")
+                             (repeat 4 "#fc8b0a")
+                             (repeat 4 "#fd7d34")
+                             (repeat 4 "#fb2916")
+                             (repeat 4 "#fd1500")]))
 
 (defn add-render-data
   [curr prev]
@@ -73,13 +80,18 @@
                                                        (:val prev)))
                                           (max (:val curr)
                                                (:val prev)))
-                                       100)))
-          perc-change-color (/ perc-change 20)]
-      (assoc curr :color (if (= (:val curr) (:val prev) 0)
-                           (first color)
-                           (if (>= perc-change-color 5)
-                             (last color)
-                             (nth color perc-change-color)))
+                                       (count color))))
+          color-index (if (= (:val curr) (:val prev) 0)
+                        0
+                        (if (>= perc-change (count color))
+                          (dec (count color))
+                          perc-change))
+          color-index (cond
+                       (> color-index (:color-index prev)) color-index
+                       (< color-index (:color-index prev)) (if (= (:color-index prev) 1)
+                                                             0
+                                                             (dec (:color-index prev))))]
+      (assoc curr :color-index color-index
              :tip (if (> (:tip prev)
                          (:val curr))
                     (if (= (:tip prev) 1)
@@ -100,10 +112,9 @@
     (let [data (for [n (range (.-length data))]
                  (do (aget data n)
                      {:val (aget data n)
-                      :color (first color)
+                      :color-index 0
                       :tip (inc (aget data n))
                       :index n}))
-          data (remove #(= (:val %) NaN) data)
           max-val (apply max (map :val data))
           val-multi (if (zero? max-val)
                       0
@@ -123,27 +134,27 @@
                   width
                   height)
       (set! (.-fillStyle canvas-context) (.-color js/window))
-      (doseq [{:keys [val index color tip]} (filter (fn [{:keys [index]}]
+      (doseq [{:keys [val index color-index tip]} (filter (fn [{:keys [index]}]
                                                   (even? index))
                                                 data)]
-        (set! (.-fillStyle canvas-context) color)
+        (set! (.-fillStyle canvas-context) (nth color color-index))
         (set! (.-shadowBlur canvas-context)
-              1)
+              3)
         (set! (.-shadowColor canvas-context)
               "#feca2f")
         (.fillRect canvas-context
-                   (+ index (* index 1))
+                   (+ index (* index 2))
                    (- height val)
-                   1
+                   2
                    val)
         (set! (.-fillStyle canvas-context) "white")
         (set! (.-shadowBlur canvas-context) "none")
         (.fillRect canvas-context
-                   (+ index (* index 1))
+                   (+ index (* index 2))
                    (- height
                       tip
                       3)
-                   1
+                   2
                    2))
       data)))
 
@@ -177,8 +188,11 @@
         audio-chan (chan)
         ui-chan (chan)
         analyzer (atom nil)
-        canvas-context (.getContext (by-id "canvas_graph") "2d")
-        audio-source (chan)]
+        canvas (by-id "canvas_graph")
+        canvas-context (.getContext canvas "2d")
+        audio-source (atom nil)]
+    (set! (.-height canvas) (.-innerHeight js/window))
+    (set! (.-width canvas) (.-innerWidth js/window))
     (go
      (loop []
        (let [buff (<! audio-chan)
@@ -194,7 +208,6 @@
     (go-loop (let [files (<! files-chan)
                    file (aget files 0)
                    audio (<! (local-file->chan file))]
-               (println audio)
                (put! audio-chan audio)))))
 
 (-main)
