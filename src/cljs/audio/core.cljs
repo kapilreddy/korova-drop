@@ -2,6 +2,7 @@
   (:require [cljs.core.async :refer [chan sliding-buffer put! timeout]]
             [clojure.string :as string]
             [clojure.browser.repl :as repl]
+            [audio.spectrum-plot :as sp]
             [utils.helpers
             :refer [event-chan set-html by-id add-class remove-class]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
@@ -60,103 +61,7 @@
 
 (set! (.-color js/window) "#90fe2e")
 
-(def color (mapcat identity [(repeat 4 "#fdf403")
-                             (repeat 4 "#fce303")
-                             (repeat 4 "#fed224")
-                             (repeat 4 "#f7c22f")
-                             (repeat 4 "#f7b52f")
-                             (repeat 4 "#fc8b0a")
-                             (repeat 4 "#fd7d34")
-                             (repeat 4 "#fb2916")
-                             (repeat 4 "#fd1500")]))
 
-(defn add-render-data
-  [curr prev]
-  (if prev
-    (let [perc-change (if (and (zero? (:val curr))
-                               (zero? (:val prev)))
-                        0
-                        (Math/floor (* (/ (Math/abs (- (:val curr)
-                                                       (:val prev)))
-                                          (max (:val curr)
-                                               (:val prev)))
-                                       (count color))))
-          color-index (if (= (:val curr) (:val prev) 0)
-                        0
-                        (if (>= perc-change (count color))
-                          (dec (count color))
-                          perc-change))
-          color-index (cond
-                       (> color-index (:color-index prev)) color-index
-                       (< color-index (:color-index prev)) (if (= (:color-index prev) 1)
-                                                             0
-                                                             (dec (:color-index prev))))]
-      (assoc curr :color-index color-index
-             :tip (if (> (:tip prev)
-                         (:val curr))
-                    (if (= (:tip prev) 1)
-                      0
-                      (- (:tip prev) 2))
-                    (inc (:val curr)))))
-    curr))
-
-
-(defn sound->display
-  [analyzer data-prev]
-  (let [canvas (by-id "canvas_graph")
-        canvas-context (.getContext (by-id "canvas_graph") "2d")
-        width (.-width canvas)
-        height (.-height canvas)
-        data (new window/Uint8Array width)]
-    (.getByteFrequencyData analyzer data)
-    (let [data (for [n (range (.-length data))]
-                 (do (aget data n)
-                     {:val (aget data n)
-                      :color-index 0
-                      :tip (inc (aget data n))
-                      :index n}))
-          max-val (apply max (map :val data))
-          val-multi (if (zero? max-val)
-                      0
-                      (/ height max-val))
-          data (map (fn [d]
-                      (assoc d :val (* (:val d) val-multi)))
-                    data)
-          data (if (seq data-prev)
-                 (do
-                   (map add-render-data
-                        data
-                        data-prev))
-                 data)
-          center {:x (/ width 2)
-                  :y (/ height 2)}]
-      (.clearRect canvas-context 0 0
-                  width
-                  height)
-      (set! (.-fillStyle canvas-context) (.-color js/window))
-      (doseq [{:keys [val index color-index tip]} (filter (fn [{:keys [index]}]
-                                                  (even? index))
-                                                data)]
-        (set! (.-fillStyle canvas-context) (nth color color-index))
-        (set! (.-shadowBlur canvas-context)
-              3)
-        (set! (.-shadowColor canvas-context)
-              "#feca2f")
-        (.fillRect canvas-context
-                   (+ index (* index 2))
-                   (- height val)
-                   2
-                   val)
-        (set! (.-fillStyle canvas-context) "white")
-        (set! (.-shadowBlur canvas-context) "none")
-        (.fillRect canvas-context
-                   (+ index (* index 2))
-                   (- height
-                      tip
-                      3)
-                   2
-                   2))
-      data)))
 
 
 (defn sound-+>display
@@ -167,19 +72,6 @@
     (.connect source-node analyzer)
     (.connect analyzer (.-destination audio-context))
     analyzer))
-
-
-(defn fix-retina
-  []
-  (when-let [pixel-ratio (.-devicePixelRatio js/window)]
-    (let [canvas (by-id "canvas_graph")
-          width (.-width canvas)
-          height (.-height canvas)
-          context (.getContext canvas "2d")]
-      (set! (.-height context) (* height pixel-ratio))
-      (set! (.-width context) (* width pixel-ratio))
-      (.scale context pixel-ratio pixel-ratio))))
-
 
 
 (defn -main
@@ -210,7 +102,11 @@
     (go (loop [data []]
           (let [frame-time (<! ui-chan)]
             (if @analyzer
-              (recur (sound->display @analyzer data))
+              (do
+                (let [arr (new window/Uint8Array (.-width canvas))]
+                  (.getByteFrequencyData @analyzer arr)
+                  (recur (sp/sound->display arr
+                                            data))))
               (recur data)))))
     (go-loop (let [files (<! files-chan)
                    file (aget files 0)]
@@ -222,5 +118,4 @@
 
 (-main)
 
-
-;; (repl/connect "http://cljs.helpshift.mobi/repl")
+(repl/connect "http://cljs.helpshift.mobi:9000/repl")
