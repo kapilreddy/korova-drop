@@ -1,82 +1,93 @@
 (ns graphics.core
   (:require [cljs.core.async :refer [chan sliding-buffer put! timeout]]
             [clojure.string :as string]
+            [clojure.browser.repl :as repl]
             [utils.helpers
             :refer [event-chan set-html by-id]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
                    [utils.macros :refer [go-loop]]))
 
 
-(comment (defn draw-circle
-           [context radius {:keys [x y]} style]
-           (.beginPath context)         ;
-           (.arc context x y radius 0 (* 2 Math.PI) false)
-           (set! (.-fillStyle context) style)
-           (.fill context)
-           (set! (.-lineWidth context) 5)
-           (set! (.-strokeStyle context) "#003300")
-           (.stroke context))
+(repl/connect "http://localhost:9000/repl")
+
+(defn update-in!
+  [i keys fn-app]
+  (apply aset i (conj keys (fn-app (apply aget i keys)))))
+
+(defn inc!
+  [i keys]
+  (update-in! i keys inc))
+
+(defn dec!
+  [i keys]
+  (update-in! i keys dec))
 
 
-         (defn generate-balls
-           [n radius {:keys [width height]}]
-           (map (fn [x]
-                  {:position {:x (rand-int (- width x))
-                              :y (rand-int (- width y))}
-                   :radius radius
-                   :vector {:x inc
-                            :y dec}})
-                (range n)))
 
+(def camera (THREE.PerspectiveCamera. 50 (/ window/innerWidth
+                                            window/innerHeight) 1 2000))
+(def renderer (THREE.WebGLRenderer. (clj->js {:antialias true})))
+(def scene (THREE.Scene.))
+(def group (new THREE.Object3D))
 
-         (defn next-position
-           [{:keys [position vector radisu] :as ball}
-            {:keys [width height]}]
-           (let [] {:position {:x ((:x vector) (:x position))
-                               :y ((:y vector) (:y position))}
-                    :vector (let [x (:x position)
-                                  y (:y position)]
-                              (cond
-                               (and (> (+ x (:radius ball)) width)
-                                    (> (+ y (:radius ball)) height))
-                               {:x dec-vel :y dec-vel}
+(defn create-nurbs
+  []
+  (let [nurbs-degree 3
+        total 28
+        nurbs-control-points (map (fn [i]
+                                    (new THREE.Vector4
+                                         (- (* (.random js/Math) 900) 200)
+                                         (* (.random js/Math) 900)
+                                         (- (* (.random js/Math) 900) 200)
+                                         2))
+                                  (range total))
+        nurbs-knots (concat (repeat 0 2)
+                            (map (fn [i]
+                                   (.clamp THREE.Math
+                                           (/ (+ i 1) (- total nurbs-degree))
+                                           0
+                                           1))
+                                 (range total)))
+        nurbs-curve (new THREE.NURBSCurve
+                         nurbs-degree
+                         (clj->js nurbs-knots)
+                         (clj->js nurbs-control-points))
+        nurbs-geometry (doto (new THREE.Geometry)
+                         (aset "vertices" (.getPoints nurbs-curve 200)))
+        nurbs-material (new THREE.LineBasicMaterial
+                            (clj->js {:linewidth 10
+                                      :color 0x883333
+                                      :transparent true}))
+        nurbs-line (new THREE.Line nurbs-geometry nurbs-material)]
+    (.set (.-position nurbs-line) 200 -100 0)
+    (.add group nurbs-line)))
 
-                               (> (+ x (:radius ball)) width)
-                               {:x dec-vel :y y}
+(defn scene-setup
+  []
+  (.setSize renderer window/innerWidth window/innerHeight)
 
-                               (> (+ y (:radius ball)) height)
-                               {:x x :y dec-vel}
+  (.appendChild (.-body js/document) (.-domElement renderer))
+  (.set (.-position camera) 0 150 750)
 
-                               (and (neg? (- x (:radius ball))) (neg? (- y (:radius ball))))
-                               {:x inc-vel :y inc-vel}
+  ;; Light setup
+  (.add scene (new THREE.AmbientLight 0x808080))
+  (let [directional-light (new THREE.DirectionalLight 0xffffff 1)]
+    (.set (.-position directional-light) 1 1 1)
+    (.add scene directional-light))
 
-                               (neg? (- x (:radius ball)))
-                               {:x inc-vel :y y}
+  (aset group "position" "y" 50)
+  (doseq [n (range 3)]
+    (create-nurbs))
+  (.add scene group))
 
-                               (neg? (- y (:radius ball)))
-                               {:x x :y inc-vel}
+(defn render []
+  (update-in! group ["rotation" "y"] (fn [i]
+                                       (+ i 0.01)))
+  (.render renderer scene camera))
 
-                               :else vector))}))
+(defn animate []
+  (.requestAnimationFrame js/window animate)
+  (render))
 
-         (defn -main
-           []
-           (let [canvas (by-id "canvas_graph")
-                 canvas-context (.getContext canvas "2d")
-                 width (.-width canvas)
-                 height (.-height canvas)
-                 inc-vel (fn [x]
-                           (+ x 10))
-                 dec-vel (fn [x]
-                           (- x 10))
-                 balls (generate-balls 1 30 {:width width
-                                             :height height})]
-             (go
-              (loop [position {:x 0 :y 0}
-                     vector {:x inc-vel :y inc-vel}]
-                (<! (timeout 50))
-                (.clearRect canvas-context  0 0 width height)
-                (range 10)
-                (doseq [{:keys [radius position]} balls]
-                  (draw-circle canvas-context radius position "green"))
-                (recur balls)))))
-         (-main))
+(scene-setup)
+(animate)
