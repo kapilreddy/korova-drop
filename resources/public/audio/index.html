@@ -2,11 +2,11 @@
   <head>
     <link rel="stylesheet" href="main.css">
     <title>korova-drop</title>
+    <style>canvas { width: 100%; height: 100% }</style>
   </head>
     <body>
         <div id="location"></div>
         <div id="key"></div>
-        <canvas id="canvas_graph" style="width:100%;height:100%;"></canvas>
         <div id="drop_zone_wrapper">
         <div id="drop_zone" style="">Drop files here</div>
         </div>
@@ -14,6 +14,38 @@
         <script type="text/javascript">
           var CLOSURE_NO_DEPS = true;
         </script>
+        <script type="x-shader/x-vertex" id="fragmentshader">
+          uniform vec3 color;
+          uniform float opacity;
+
+          varying vec3 vColor;
+
+          void main() {
+          gl_FragColor = vec4( vColor * color, opacity );
+          }
+        </script>
+        <script type="x-shader/x-vertex" id="vertexshader">
+          uniform float amplitude;
+
+          attribute vec3 displacement;
+          attribute vec3 customColor;
+
+          varying vec3 vColor;
+
+          void main() {
+
+          vec3 newPosition = position + amplitude * displacement;
+
+          vColor = customColor;
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+          }
+        </script>
+        <script src="../three/three.min.js" type="text/javascript"></script>
+        <script src="../three/curves/NURBSCurve.js"></script>
+	<script src="../three/curves/NURBSSurface.js"></script>
+	<script src="../three/curves/NURBSUtils.js"></script>
         <script src="audio.js" type="text/javascript"></script>
     </body>
 </html>

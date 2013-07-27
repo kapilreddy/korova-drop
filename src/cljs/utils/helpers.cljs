@@ -44,6 +44,9 @@
 (defn set-html [el s]
   (aset el "innerHTML" s))
 
+(defn get-html [el]
+  (aget el "textContent"))
+
 (defn to-char [code]
   (.fromCharCode js/String code))
 
@@ -330,3 +333,18 @@
                     (>! (:in coll) {:op :update :id id :val (extract el)})
                     (recur))))))
       control)))
+
+
+(defn update-in!
+  [i keys fn-app]
+  (apply aset i (conj keys (fn-app (apply aget i keys)))))
+
+
+(defn inc!
+  [i keys]
+  (update-in! i keys inc))
+
+
+(defn dec!
+  [i keys]
+  (update-in! i keys dec))

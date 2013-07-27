@@ -49,12 +49,11 @@
         canvas-context (.getContext (by-id "canvas_graph") "2d")
         width (.-width canvas)
         height (.-height canvas)]
-    (let [data (for [n (range (.-length data))]
-                 (do (aget data n)
-                     {:val (aget data n)
-                      :color-index 0
-                      :tip (inc (aget data n))
-                      :index n}))
+    (let [data (for [i (range (.-length data))]
+                 {:val (aget data i)
+                  :color-index 0
+                  :tip (inc (aget data n))
+                  :index n})
           max-val (apply max (map :val data))
           val-multi (if (zero? max-val)
                       0

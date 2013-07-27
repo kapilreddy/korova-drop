@@ -1,27 +1,6 @@
 (ns graphics.core
-  (:require [cljs.core.async :refer [chan sliding-buffer put! timeout]]
-            [clojure.string :as string]
-            [clojure.browser.repl :as repl]
-            [utils.helpers
-            :refer [event-chan set-html by-id]])
-  (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
-                   [utils.macros :refer [go-loop]]))
-
-
-(repl/connect "http://localhost:9000/repl")
-
-(defn update-in!
-  [i keys fn-app]
-  (apply aset i (conj keys (fn-app (apply aget i keys)))))
-
-(defn inc!
-  [i keys]
-  (update-in! i keys inc))
-
-(defn dec!
-  [i keys]
-  (update-in! i keys dec))
-
+  (:require [utils.helpers
+             :refer [set-html by-id update-in!]]))
 
 
 (def camera (THREE.PerspectiveCamera. 50 (/ window/innerWidth

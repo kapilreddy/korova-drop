@@ -20,6 +20,7 @@
   :aliases
   { "browser" ["with-profile" "browser-repl" "repl"]}
   :cljsbuild {:builds [{:id "audio"
+                        :notify-command ["growlnotify" "-m"]
                         :source-paths ["src/cljs/audio"
                                        "src/cljs/utils"]
                         :compiler {:optimizations :whitespace
@@ -30,4 +31,5 @@
                                        "src/cljs/utils"]
                         :compiler {:optimizations :whitespace
                                    :pretty-print true
+                                   :libs ["resources/public/three"]
                                    :output-to "resources/public/graphics/graphics.js"}}]})
