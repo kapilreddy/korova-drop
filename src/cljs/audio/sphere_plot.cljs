@@ -8,6 +8,34 @@
 (def renderer (THREE.WebGLRenderer. (clj->js {:antialias true})))
 (def scene (THREE.Scene.))
 
+(def fragment-shader "
+          uniform vec3 color;
+          uniform float opacity;
+
+          varying vec3 vColor;
+
+          void main() {
+          gl_FragColor = vec4( vColor * color, opacity );
+          }")
+
+(def vertex-shader "
+          uniform float amplitude;
+
+          attribute vec3 displacement;
+          attribute vec3 customColor;
+
+          varying vec3 vColor;
+
+          void main() {
+
+          vec3 newPosition = position + amplitude * displacement;
+
+          vColor = customColor;
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+          }")
+
 (def shader-material (THREE.ShaderMaterial.
                       (clj->js {:uniforms (clj->js {:amplitude {:type "f" :value "5.0"}
                                                     :opacity {:type "f" :value "0.1"}
@@ -16,9 +44,9 @@
                                                                         0xff0000)}})
                                 :attributes (clj->js {:displacement {:type "v3" :value []}
                                                       :customColor {:type "c" :value []}})
-                                :vertexShader (get-html (by-id "vertexshader"))
+                                :vertexShader vertex-shader
                                 :blending THREE.AdditiveBlending
-                                :fragmentShader (get-html (by-id "fragmentshader"))
+                                :fragmentShader fragment-shader
                                 :depthTest false
                                 :linewidth 3})))
 
@@ -59,6 +87,7 @@
                 (normalize-data max-val))))))
   (aset shader-material "attributes" "displacement" "needsUpdate" true)
   (.render renderer scene camera))
+
 
 (defn scene-setup
   []

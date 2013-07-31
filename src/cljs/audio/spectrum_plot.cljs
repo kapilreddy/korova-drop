@@ -44,38 +44,36 @@
 
 
 (defn sound->display
-  [data data-prev]
+  [data-seq data-prev]
   (let [canvas (by-id "canvas_graph")
         canvas-context (.getContext (by-id "canvas_graph") "2d")
         width (.-width canvas)
         height (.-height canvas)]
-    (let [data (for [i (range (.-length data))]
-                 {:val (aget data i)
-                  :color-index 0
-                  :tip (inc (aget data n))
-                  :index n})
-          max-val (apply max (map :val data))
+    (let [data-seq (map (fn [v i] {:val v
+                                   :color-index 0
+                                   :tip (inc v)
+                                   :index i})
+                        data-seq
+                        (range (count data-seq)))
+          max-val (apply max (map :val data-seq))
           val-multi (if (zero? max-val)
                       0
                       (/ height max-val))
-          data (map (fn [d]
-                      (assoc d :val (* (:val d) val-multi)))
-                    data)
-          data (if (seq data-prev)
-                 (do
-                   (map add-render-data
-                        data
-                        data-prev))
-                 data)
-          center {:x (/ width 2)
-                  :y (/ height 2)}]
+          data-seq (map (fn [d]
+                          (assoc d :val (* (:val d) val-multi)))
+                        data-seq)
+          data-seq (if data-prev
+                     (map add-render-data
+                          data-seq
+                          data-prev)
+                     data-seq)]
       (.clearRect canvas-context 0 0
                   width
                   height)
       (set! (.-fillStyle canvas-context) (.-color js/window))
       (doseq [{:keys [val index color-index tip]} (filter (fn [{:keys [index]}]
                                                             (even? index))
-                                                          data)]
+                                                          data-seq)]
         (set! (.-fillStyle canvas-context) (nth color color-index))
         (set! (.-shadowBlur canvas-context)
               3)
@@ -95,4 +93,13 @@
                       3)
                    2
                    2))
-      data)))
+      data-seq)))
+
+
+(defn scene-setup
+  []
+  (let [canvas (.createElement js/document "canvas")]
+    (aset canvas "width" window/innerWidth)
+    (aset canvas "height" window/innerHeight)
+    (.setAttribute canvas "id" "canvas_graph")
+    (.appendChild (.-body js/document) canvas)))
