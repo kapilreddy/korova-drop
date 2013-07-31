@@ -8,3 +8,9 @@ pom.xml
 .lein-deps-sum
 .lein-failures
 .lein-plugins
+.repl
+.lein-repl-history
+repl/
+.DS_Store
+out/
+.ender
