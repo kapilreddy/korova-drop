@@ -65,11 +65,7 @@
   (let [time (* (.getTime (new js/Date)) 0.01)
         max-val  (apply max data)
         obj @object]
-    ;; (aset obj "rotation" "y" (Math/sin (* 0.15 (normalize-data max-val))))
-    ;; (aset obj "rotation" "z" (* 0.15 time))
-    ;; (aset shader-material
-    ;;       "uniforms" "amplitude" "value"
-    ;;       (* (.sin js/Math (* 0.5 time))))
+    (aset obj "rotation" "z" (* 0.15 max-val))
     (.offsetHSL (aget shader-material
                       "uniforms" "color" "value")
                 (* 0.05 (normalize-data max-val)) 0 0)
