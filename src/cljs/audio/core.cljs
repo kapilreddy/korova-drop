@@ -88,13 +88,14 @@
   (.requestAnimationFrame js/window (partial animloop ui-chan))
   (put! ui-chan ts))
 
+(def active-viz (atom :sphere))
+
 (defn -main
   []
   (let [files-chan (init-file-handling)
         audio-chan (chan)
         ui-chan (chan)
-        analyzer (atom nil)
-        active-viz (atom :spectrum)]
+        analyzer (atom nil)]
     (animloop ui-chan 0)
     ((get-in viz [@active-viz :setup]))
     (go

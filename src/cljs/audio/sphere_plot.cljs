@@ -48,7 +48,8 @@
                                 :blending THREE.AdditiveBlending
                                 :fragmentShader fragment-shader
                                 :depthTest false
-                                :linewidth 3})))
+                                :transparent true
+                                :linewidth 4})))
 
 
 (def object (atom nil))
@@ -62,18 +63,19 @@
 (defn sound->display
   [data prev-data]
   (let [time (* (.getTime (new js/Date)) 0.01)
-        max-val  (.apply Math/max Math data)
+        max-val  (apply max data)
         obj @object]
-    (aset obj "rotation" "y" (* 0.15 time))
-    (aset obj "rotation" "z" (* 0.15 time))
-    (aset shader-material
-          "uniforms" "amplitude" "value"
-          (* (.sin js/Math (* 0.5 time))))
+    ;; (aset obj "rotation" "y" (Math/sin (* 0.15 (normalize-data max-val))))
+    ;; (aset obj "rotation" "z" (* 0.15 time))
+    ;; (aset shader-material
+    ;;       "uniforms" "amplitude" "value"
+    ;;       (* (.sin js/Math (* 0.5 time))))
     (.offsetHSL (aget shader-material
                       "uniforms" "color" "value")
                 (* 0.05 (normalize-data max-val)) 0 0)
     (let [displacements (aget shader-material
                               "attributes" "displacement" "value")]
+      (aset shader-material "uniforms" "amplitude" "value" max-val)
       (doseq [i (range (.-length displacements))]
         (let [d (aget displacements i)]
           (aset d
@@ -93,7 +95,7 @@
   []
   (.setSize renderer window/innerWidth window/innerHeight)
   (.appendChild (.-body js/document) (.-domElement renderer))
-  (.set (.-position camera) 0 0 7)
+  (.set (.-position camera) 5 4 30)
   (let [geom (new THREE.SphereGeometry 3 64 64)]
     (aset geom "dyanimc" true)
     (let [obj (new THREE.Line geom
