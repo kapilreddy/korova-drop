@@ -123,3 +123,7 @@
                                 (range v-count))))
         (.add scene obj)
         (reset! object obj)))))
+
+(defn scene-destroy
+  []
+  (.removeChild (.-body js/document) (by-id "canvas_graph")))

@@ -103,3 +103,8 @@
     (aset canvas "height" window/innerHeight)
     (.setAttribute canvas "id" "canvas_graph")
     (.appendChild (.-body js/document) canvas)))
+
+
+(defn scene-destroy
+  []
+  (.removeChild (.-body js/document) (by-id "canvas_graph")))

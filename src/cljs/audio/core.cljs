@@ -13,10 +13,10 @@
 (repl/connect "http://localhost:9000/repl")
 (def viz {:spectrum {:setup sp/scene-setup
                      :sound-render sp/sound->display
-                     :detroy sp/scene-destroy}
+                     :destroy sp/scene-destroy}
           :sphere {:setup sph/scene-setup
                    :sound-render sph/sound->display
-                   :detroy sph/scene-destroy}} )
+                   :destroy sph/scene-destroy}} )
 
 (def audio-context (if window/webkitAudioContext
                      (new window/webkitAudioContext)
@@ -90,6 +90,14 @@
 
 (def active-viz (atom :sphere))
 
+(defn change-renderer
+  [renderer]
+  (let [old-renderer @active-viz]
+    (reset! active-viz nil)
+    ((get-in viz [old-renderer :destroy]))
+    ((get-in viz [renderer :setup]))
+    (reset! active-viz renderer)))
+
 (defn -main
   []
   (let [files-chan (init-file-handling)
@@ -114,10 +122,10 @@
                   (.getByteFrequencyData @analyzer arr)
                   (let [audio-data (for [i (range (.-length arr))]
                                      (aget arr i))]
-                    (recur ((get-in viz [@active-viz :sound-render])
-                            audio-data
-                            prev-data)))))
-              (recur data)))))
+                    (if-let [render-fn (get-in viz [@active-viz :sound-render])]
+                      (recur (render-fn audio-data prev-data))
+                      (recur prev-data)))))
+              (recur prev-data)))))
     (go-loop (let [files (<! files-chan)
                    file (aget files 0)]
                (add-class (by-id "drop_zone_wrapper") "loading")
