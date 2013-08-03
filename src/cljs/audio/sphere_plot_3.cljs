@@ -1,4 +1,4 @@
-(ns audio.sphere-plot
+(ns audio.sphere-plot-3
   (:require [utils.helpers
              :refer [set-html by-id update-in! get-html]]))
 
@@ -82,7 +82,7 @@
                   (* 5 (normalize-data max-perc-change)) 0 0))
     (let [displacements (aget shader-material
                               "attributes" "displacement" "value")]
-      (aset shader-material "uniforms" "amplitude" "value" max-val)
+      (aset shader-material "uniforms" "amplitude" "value" max-perc-change)
       (doseq [i (range (.-length displacements))]
         (let [d (aget displacements i)]
           (aset d
@@ -103,7 +103,7 @@
   []
   (.setSize renderer window/innerWidth window/innerHeight)
   (.appendChild (.-body js/document) (.-domElement renderer))
-  (.set (.-position camera) 5 4 30)
+  (.set (.-position camera) 0 0 10)
   (let [geom (new THREE.SphereGeometry 3 64 64)]
     (aset geom "dyanimc" true)
     (let [obj (new THREE.Line geom
