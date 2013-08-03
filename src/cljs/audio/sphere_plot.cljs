@@ -103,6 +103,7 @@
   []
   (.setSize renderer window/innerWidth window/innerHeight)
   (.appendChild (.-body js/document) (.-domElement renderer))
+  (.setAttribute (.-domElement renderer) "id" "canvas_graph")
   (.set (.-position camera) 5 4 30)
   (let [geom (new THREE.SphereGeometry 3 64 64)]
     (aset geom "dyanimc" true)
@@ -134,4 +135,5 @@
 
 (defn scene-destroy
   []
-  (.removeChild (.-body js/document) (by-id "canvas_graph")))
+  (when-let [c (by-id "canvas_graph")]
+    (.removeChild (.-body js/document) c)))

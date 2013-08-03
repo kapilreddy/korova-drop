@@ -107,4 +107,5 @@
 
 (defn scene-destroy
   []
-  (.removeChild (.-body js/document) (by-id "canvas_graph")))
+  (when-let [c (by-id "canvas_graph")]
+    (.removeChild (.-body js/document) c)))

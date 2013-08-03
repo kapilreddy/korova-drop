@@ -3,6 +3,8 @@
             [clojure.string :as string]
             [clojure.browser.repl :as repl]
             [audio.sphere-plot :as sph]
+            [audio.sphere-plot-2 :as sph2]
+            [audio.sphere-plot-3 :as sph3]
             [audio.spectrum-plot :as sp]
             [utils.helpers
              :refer [event-chan set-html by-id add-class remove-class]])
@@ -12,6 +14,8 @@
 
 (repl/connect "http://localhost:9000/repl")
 
+(def viz-list [:spectrum :sphere :sphere2 :sphere3])
+
 (defn viz-run
   [keys & args]
   (let [viz-data {:spectrum {:setup sp/scene-setup
@@ -19,7 +23,13 @@
                              :destroy sp/scene-destroy}
                   :sphere {:setup sph/scene-setup
                            :sound-render sph/sound->display
-                           :destroy sph/scene-destroy}}]
+                           :destroy sph/scene-destroy}
+                  :sphere2 {:setup sph2/scene-setup
+                            :sound-render sph2/sound->display
+                            :destroy sph2/scene-destroy}
+                  :sphere3 {:setup sph3/scene-setup
+                            :sound-render sph3/sound->display
+                            :destroy sph3/scene-destroy}}]
 
     (apply (get-in viz-data keys) args)))
 
@@ -74,10 +84,6 @@
     (.start source 0)
     source))
 
-(set! (.-color js/window) "#90fe2e")
-
-
-
 
 (defn sound-+>display
   [source-node]
@@ -99,15 +105,42 @@
   (let [old-renderer @active-viz]
     (reset! active-viz nil)
     (viz-run [old-renderer :destroy])
-    (viz-run [old-renderer :setup])
+    (viz-run [renderer :setup])
     (reset! active-viz renderer)))
+
+(let [viz-count (count viz-list)]
+  (defn shift-renderer
+    [dir]
+    (println dir)
+    (let [curr-index (some (fn [[i v]]
+                             (when (= v @active-viz)
+                               i))
+                           (map-indexed (fn [i v]
+                                          [i v])
+                                        viz-list))
+          next-index (condp = dir
+                       :left (dec curr-index)
+                       :right (inc curr-index))
+          next-index (mod (+ next-index viz-count) viz-count)
+          next-renderer (nth viz-list next-index)]
+      (change-renderer next-renderer))))
+
+(defn init-key-handler
+  []
+  (let [key-chan (chan)]
+    (aset js/document
+          "onkeydown"
+          #(put! key-chan (aget % "keyCode")))
+    key-chan))
+
 
 (defn -main
   []
   (let [files-chan (init-file-handling)
         audio-chan (chan)
         ui-chan (chan)
-        analyzer (atom nil)]
+        analyzer (atom nil)
+        key-chan (init-key-handler)]
     (animloop ui-chan 0)
     (viz-run [@active-viz :setup])
     (go
@@ -136,6 +169,11 @@
                (let [audio (<! (local-file->chan file))]
                  (remove-class (by-id "drop_zone_wrapper") "loading")
                  (add-class (by-id "drop_zone_wrapper") "corner")
-                 (put! audio-chan audio))))))
+                 (put! audio-chan audio))))
+    (go-loop (let [key-code (<! key-chan)]
+               (condp = key-code
+                 37 (shift-renderer :left)
+                 39 (shift-renderer :right)
+                 "Lol")))))
 
 (-main)
