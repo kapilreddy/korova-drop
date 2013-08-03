@@ -5,24 +5,28 @@
             [audio.sphere-plot :as sph]
             [audio.spectrum-plot :as sp]
             [utils.helpers
-            :refer [event-chan set-html by-id add-class remove-class]])
+             :refer [event-chan set-html by-id add-class remove-class]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alts!]]
                    [utils.macros :refer [go-loop]]))
 
 
 (repl/connect "http://localhost:9000/repl")
-(def viz {:spectrum {:setup sp/scene-setup
-                     :sound-render sp/sound->display
-                     :destroy sp/scene-destroy}
-          :sphere {:setup sph/scene-setup
-                   :sound-render sph/sound->display
-                   :destroy sph/scene-destroy}} )
+
+(defn viz-run
+  [keys & args]
+  (let [viz-data {:spectrum {:setup sp/scene-setup
+                             :sound-render sp/sound->display
+                             :destroy sp/scene-destroy}
+                  :sphere {:setup sph/scene-setup
+                           :sound-render sph/sound->display
+                           :destroy sph/scene-destroy}}]
+
+    (apply (get-in viz-data keys) args)))
 
 (def audio-context (if window/webkitAudioContext
                      (new window/webkitAudioContext)
                      window/AudioContext))
 (def a-size 2048)
-
 
 (defn local-file->chan
   [file]
@@ -94,8 +98,8 @@
   [renderer]
   (let [old-renderer @active-viz]
     (reset! active-viz nil)
-    ((get-in viz [old-renderer :destroy]))
-    ((get-in viz [renderer :setup]))
+    (viz-run [old-renderer :destroy])
+    (viz-run [old-renderer :setup])
     (reset! active-viz renderer)))
 
 (defn -main
@@ -105,7 +109,7 @@
         ui-chan (chan)
         analyzer (atom nil)]
     (animloop ui-chan 0)
-    ((get-in viz [@active-viz :setup]))
+    (viz-run [@active-viz :setup])
     (go
      (loop [audio-source nil]
        (let [buff (<! audio-chan)
@@ -122,8 +126,8 @@
                   (.getByteFrequencyData @analyzer arr)
                   (let [audio-data (for [i (range (.-length arr))]
                                      (aget arr i))]
-                    (if-let [render-fn (get-in viz [@active-viz :sound-render])]
-                      (recur (render-fn audio-data prev-data))
+                    (if-let [renderer @active-viz]
+                      (recur (viz-run [renderer :sound-render] audio-data prev-data))
                       (recur prev-data)))))
               (recur prev-data)))))
     (go-loop (let [files (<! files-chan)
