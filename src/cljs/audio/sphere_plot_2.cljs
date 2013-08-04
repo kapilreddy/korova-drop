@@ -63,13 +63,14 @@
 (defn sound->display
   [data prev-data]
   (let [time (* (.getTime (new js/Date)) 0.01)
+        n (get prev-data :n 0)
         perc-change (map (fn [d1 d2]
                            (let [perc (/ (.abs js/Math (- d1 d2)) d1)]
                              (if (or (js/isNaN perc)
                                      (= perc js/Infinity))
                                0
                                perc)))
-                         prev-data
+                         (:coll prev-data)
                          data)
         max-val  (apply max data)
         max-perc-change (apply max perc-change)
@@ -82,7 +83,7 @@
                   (* 5 (normalize-data max-perc-change)) 0 0))
     (let [displacements (aget shader-material
                               "attributes" "displacement" "value")
-          repeat-data (cycle data)]
+          repeat-data (drop n (cycle data))]
       (aset shader-material "uniforms" "amplitude" "value" (/ max-val 20))
       (doseq [[i v] (partition 2 (interleave (range (.-length displacements))
                                              repeat-data))]
@@ -98,7 +99,8 @@
                 (* 0.5 (normalize-data v)))))
   (aset shader-material "attributes" "displacement" "needsUpdate" true)
   (.render renderer scene camera)
-  data)))
+  {:coll data
+   :n (+ n (* (max max-perc-change (normalize-data max-val)) 20))})))
 
 
 (defn scene-setup
@@ -106,7 +108,7 @@
   (.setSize renderer window/innerWidth window/innerHeight)
   (.appendChild (.-body js/document) (.-domElement renderer))
   (.setAttribute (.-domElement renderer) "id" "canvas_graph")
-  (.set (.-position camera) 0 0 10)
+  (.set (.-position camera) 0 0 9)
   (let [geom (new THREE.SphereGeometry 3 64 64)]
     (aset geom "dyanimc" true)
     (let [obj (new THREE.Line geom
