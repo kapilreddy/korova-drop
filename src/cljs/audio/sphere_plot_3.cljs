@@ -74,8 +74,13 @@
         max-val  (apply max data)
         max-perc-change (apply max perc-change)
         obj @object]
-    ;; (if (> max-perc-change 9)
-    ;;   (aset obj "rotation" "z" (* 0.15 max-perc-change)))
+    ;; (aset obj "rotation" "z" (+ (aget obj "rotation" "z")
+    ;;                             (* 0.15 max-perc-change)))
+    (aset obj "rotation" "y" (+ (aget obj "rotation" "y")
+                                (/ max-perc-change 20)))
+
+    (aset camera "rotation" "z" (+ (aget camera "rotation" "z")
+                                   0.01))
     (when (> max-perc-change 4)
       (.offsetHSL (aget shader-material
                         "uniforms" "color" "value")
