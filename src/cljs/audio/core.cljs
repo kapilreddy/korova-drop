@@ -14,6 +14,8 @@
 
 (repl/connect "http://localhost:9000/repl")
 
+(def active-viz (atom :sphere))
+
 (def viz-list [:spectrum :sphere :sphere2 :sphere3])
 
 (defn viz-run
@@ -39,6 +41,7 @@
 (def a-size 2048)
 
 (defn local-file->chan
+  "Return a channel 'c' for a given local file. Decoded mp3 data pushed to the channel 'c'"
   [file]
   (let [reader (new window/FileReader)
         resp-c (chan)
@@ -54,6 +57,9 @@
 
 
 (defn init-file-handling
+  "All file drag and drop related handling this will return a files channels.
+  'files-chan' will always recieve an array of files whenever files are
+  dropped on 'drop-zon' div."
   []
   (let [drop-zone (by-id "drop_zone")
         files-chan (chan)]
@@ -77,6 +83,7 @@
 
 
 (defn play-sound-buff
+  "Play the given audioBuffer using global audio-context"
   [buffer]
   (let [source (.createBufferSource audio-context)]
     (set! (.-buffer source) buffer)
@@ -86,6 +93,8 @@
 
 
 (defn sound-+>display
+  "Connect an analyzer to audio source which will
+   generate fft data for viz."
   [source-node]
   (let [analyzer (.createAnalyser audio-context)]
     (set! (.-fftSize analyzer) 1024)
@@ -94,13 +103,15 @@
     (.connect analyzer (.-destination audio-context))
     analyzer))
 
-(defn animloop [ui-chan ts]
+(defn animloop
+  "Request animation loop for rendering everything."
+  [ui-chan ts]
   (.requestAnimationFrame js/window (partial animloop ui-chan))
   (put! ui-chan ts))
 
-(def active-viz (atom :sphere))
 
 (defn change-renderer
+  "Switch a vizualization renderer. Every renderer must implement "
   [renderer]
   (let [old-renderer @active-viz]
     (reset! active-viz nil)
@@ -108,10 +119,11 @@
     (viz-run [renderer :setup])
     (reset! active-viz renderer)))
 
+
 (let [viz-count (count viz-list)]
   (defn shift-renderer
+    "Shift to next renderer to specified 'dir' (:right or :left)"
     [dir]
-    (println dir)
     (let [curr-index (some (fn [[i v]]
                              (when (= v @active-viz)
                                i))
@@ -125,7 +137,10 @@
           next-renderer (nth viz-list next-index)]
       (change-renderer next-renderer))))
 
+
 (defn init-key-handler
+  "Key handler attached to js document. returns a 'key-chan'.
+   keyCode are pushed to 'key-chan'"
   []
   (let [key-chan (chan)]
     (aset js/document
@@ -142,8 +157,25 @@
         analyzer (atom nil)
         progress-chan (chan)
         key-chan (init-key-handler)]
+    ;; Initiate animation loop
     (animloop ui-chan 0)
+    ;; Initial setup for current active viz.
     (viz-run [@active-viz :setup])
+
+    ;; Go block to handle drag and drop ui states. Also pass file data
+    ;; to correct channel for later processing/rendering.
+    (go-loop (let [files (<! files-chan)
+                   file (aget files 0)]
+               (add-class (by-id "drop_zone_wrapper") "loading")
+               (let [audio (<! (local-file->chan file))]
+                 (remove-class (by-id "drop_zone_wrapper") "loading")
+                 (add-class (by-id "drop_zone_wrapper") "corner")
+                 (remove-class (by-id "progress-bar-wrapper") "hidden")
+                 (aset (by-id "progress") "style" "0%")
+                 (put! audio-chan audio))))
+
+    ;; Go block to handle playing and analyzing audio file that is
+    ;; droppped to 'drop-zone'
     (go
      (loop [audio-source nil]
        (let [buff (<! audio-chan)
@@ -154,6 +186,8 @@
            (.noteOff audio-source 0))
          (reset! analyzer (sound-+>display source-node))
          (recur source-node))))
+
+    ;; Go block to pass analyzed frequency data to current active viz renderer
     (go (loop [prev-data nil]
           (let [frame-time (<! ui-chan)]
             (put! progress-chan {:type :update
@@ -168,20 +202,16 @@
                       (recur (viz-run [renderer :sound-render] audio-data prev-data))
                       (recur prev-data)))))
               (recur prev-data)))))
-    (go-loop (let [files (<! files-chan)
-                   file (aget files 0)]
-               (add-class (by-id "drop_zone_wrapper") "loading")
-               (let [audio (<! (local-file->chan file))]
-                 (remove-class (by-id "drop_zone_wrapper") "loading")
-                 (add-class (by-id "drop_zone_wrapper") "corner")
-                 (remove-class (by-id "progress-bar-wrapper") "hidden")
-                 (aset (by-id "progress") "style" "0%")
-                 (put! audio-chan audio))))
+
+    ;; Go block to handle key captured on js/document. Used to change
+    ;; viz for now.
     (go-loop (let [key-code (<! key-chan)]
                (condp = key-code
                  37 (shift-renderer :left)
                  39 (shift-renderer :right)
-                 "Lol")))
+                 "Other keys not supported")))
+
+    ;; Go block to update progress bar.
     (go (loop [start-time 0
                duration 0]
           (let [{:keys [type val]} (<! progress-chan)
