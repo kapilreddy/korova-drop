@@ -140,6 +140,7 @@
         audio-chan (chan)
         ui-chan (chan)
         analyzer (atom nil)
+        progress-chan (chan)
         key-chan (init-key-handler)]
     (animloop ui-chan 0)
     (viz-run [@active-viz :setup])
@@ -147,12 +148,16 @@
      (loop [audio-source nil]
        (let [buff (<! audio-chan)
              source-node (play-sound-buff buff)]
+         (put! progress-chan {:type :duration
+                              :val (aget buff "duration")})
          (when audio-source
            (.noteOff audio-source 0))
          (reset! analyzer (sound-+>display source-node))
          (recur source-node))))
     (go (loop [prev-data nil]
           (let [frame-time (<! ui-chan)]
+            (put! progress-chan {:type :update
+                                 :val frame-time})
             (if @analyzer
               (do
                 (let [arr (new window/Uint8Array (.-innerWidth js/window))]
@@ -169,11 +174,33 @@
                (let [audio (<! (local-file->chan file))]
                  (remove-class (by-id "drop_zone_wrapper") "loading")
                  (add-class (by-id "drop_zone_wrapper") "corner")
+                 (remove-class (by-id "progress-bar-wrapper") "hidden")
+                 (aset (by-id "progress") "style" "0%")
                  (put! audio-chan audio))))
     (go-loop (let [key-code (<! key-chan)]
                (condp = key-code
                  37 (shift-renderer :left)
                  39 (shift-renderer :right)
-                 "Lol")))))
+                 "Lol")))
+    (go (loop [start-time 0
+               duration 0]
+          (let [{:keys [type val]} (<! progress-chan)
+
+                curr-time (aget audio-context "currentTime")]
+            (if (= type :duration)
+              (do (aset (by-id "progress")
+                        "style"
+                        "width"
+                        "0%")
+                  (recur curr-time
+                         val))
+              (do (aset (by-id "progress")
+                        "style"
+                        "width"
+                        (str (if (zero? end-time)
+                               0
+                               (* (/ (- curr-time start-time) duration) 100))
+                             "%"))
+                  (recur start-time duration))))))))
 
 (-main)

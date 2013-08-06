@@ -65,6 +65,29 @@ letter-spacing: 2px;
     top: 64px;
 }
 
+#progress-bar-wrapper {
+    position: absolute;
+    bottom: 20px;
+    left: 0px;
+    display: block;
+    width: 100%;
+}
+
+#progress-bar-wrapper.hidden {
+    display: none;
+}
+.progress-bar {
+    height: 2px;
+    width: 100%;
+    background-color: #222;
+}
+
+#progress {
+    height: 100%;
+    width: 0%;
+    background-color: #888;
+}
+
 #fadingBarsG{
 position:relative;
 width:149px;
