@@ -1,0 +1,3 @@
+["v", "lein cljsbuild clean && lein cljsbuild once && lein cljsbuild auto",
+      "lein ring server 3000",
+      "lein n"]
