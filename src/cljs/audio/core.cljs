@@ -1,9 +1,7 @@
 (ns audio.core
   (:require [cljs.core.async :refer [chan sliding-buffer put! timeout]]
             [clojure.string :as string]
-            [clojure.browser.repl :as repl]
             [audio.sphere-plot :as sph]
-            [audio.sphere-plot-2 :as sph2]
             [audio.sphere-plot-3 :as sph3]
             [audio.spectrum-plot :as sp]
             [utils.helpers
@@ -12,11 +10,9 @@
                    [utils.macros :refer [go-loop]]))
 
 
-(repl/connect "http://localhost:9000/repl")
+(def active-viz (atom :sphere3))
 
-(def active-viz (atom :sphere))
-
-(def viz-list [:spectrum :sphere :sphere2 :sphere3])
+(def viz-list [:sphere3 :sphere :spectrum])
 
 (defn viz-run
   [keys & args]
@@ -26,9 +22,6 @@
                   :sphere {:setup sph/scene-setup
                            :sound-render sph/sound->display
                            :destroy sph/scene-destroy}
-                  :sphere2 {:setup sph2/scene-setup
-                            :sound-render sph2/sound->display
-                            :destroy sph2/scene-destroy}
                   :sphere3 {:setup sph3/scene-setup
                             :sound-render sph3/sound->display
                             :destroy sph3/scene-destroy}}]
@@ -149,6 +142,14 @@
     key-chan))
 
 
+(defn init-doc-handler
+  []
+  (let [onload-chan (chan)]
+    (aset js/window "onload" (fn []
+                               (put! onload-chan "ready")))
+    onload-chan))
+
+
 (defn -main
   []
   (let [files-chan (init-file-handling)
@@ -156,11 +157,16 @@
         ui-chan (chan)
         analyzer (atom nil)
         progress-chan (chan)
-        key-chan (init-key-handler)]
+        key-chan (init-key-handler)
+        doc-ready-chan (init-doc-handler)]
     ;; Initiate animation loop
     (animloop ui-chan 0)
+
     ;; Initial setup for current active viz.
-    (viz-run [@active-viz :setup])
+    (go-loop (<! doc-ready-chan)
+             ;; This is a temporary fix for setup function in sphere3.
+             (doseq [n (range 2)]
+               (change-renderer @active-viz)))
 
     ;; Go block to handle drag and drop ui states. Also pass file data
     ;; to correct channel for later processing/rendering.
