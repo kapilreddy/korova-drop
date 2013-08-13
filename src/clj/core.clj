@@ -5,13 +5,11 @@
   (:require [compojure.handler :as handler]
             [stencil.core :as sc]
             [ring.adapter.jetty :refer [run-jetty]]
-            [cemerick.austin.repls :refer [browser-connected-repl-js]]
             [compojure.route :as route]))
 
 (defn audio-page
   []
-  (println (browser-connected-repl-js))
-  (sc/render-file "public/audio/index.html" {:repl-script (browser-connected-repl-js)}))
+  (sc/render-file "public/audio/index.html" {:repl-script "test"}))
 
 
 (defroutes app-routes

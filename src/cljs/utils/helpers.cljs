@@ -25,8 +25,7 @@
 ;; Pattern matching support
 
 (extend-type object
-  ILookup
-  (-lookup [coll k]
+  ILookup  (-lookup [coll k]
     (-lookup coll k nil))
   (-lookup [coll k not-found]
     (if (.hasOwnProperty coll k)

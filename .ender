@@ -1,3 +1,5 @@
-["v", "lein cljsbuild clean && lein cljsbuild once && lein cljsbuild auto",
+["v", ["h", 
+	   "lein cljsbuild clean && lein cljsbuild once && lein cljsbuild auto", 
+	   "cd resources/public/audio && compass watch"],
       "lein ring server 3000",
       "lein n"]
