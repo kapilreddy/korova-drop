@@ -1,5 +1,5 @@
 (defproject korova-drop "0.1.0-SNAPSHOT"
-  :description "An audio vizulization project using HTML5"
+  :description "An audio visualization project using HTML5 and core.async"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
