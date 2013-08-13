@@ -113,6 +113,18 @@ body {
         text-decoration: none;
         color: rgba(#17c7cc, 0.7);
     }
+    width:100%;
+
+    span {
+        padding: 0px 20px;
+        &.desc {
+            float:left;
+        }
+        &.author {
+            float: right;
+        }
+    }
+
 
 }
 #fadingBarsG{

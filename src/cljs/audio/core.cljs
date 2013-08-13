@@ -61,7 +61,7 @@
   'files-chan' will always recieve an array of files whenever files are
   dropped on 'drop-zon' div."
   []
-  (let [drop-zone (by-id "drop_zone_wrapper")
+  (let [drop-zone js/document
         files-chan (chan)]
     (.addEventListener drop-zone
                        "dragover"
