@@ -27,8 +27,18 @@
                         :notify-command ["growlnotify" "-m"]
                         :source-paths ["src/cljs/audio"
                                        "src/cljs/utils"]
-                        :compiler {:optimizations :whitespace
+                        :compiler {:optimizations :advanced
                                    :pretty-print true
+                                   :output-to "resources/public/audio/audio-debug.js"}}
+                       {:id "audio-prod"
+                        :notify-command ["growlnotify" "-m"]
+                        :source-paths ["src/cljs/audio"
+                                       "src/cljs/utils"]
+                        :compiler {:optimizations :advanced
+                                   :pretty-print false
+                                   :externs ["externs/audio_api.js"
+                                             "externs/three.js"
+                                             "externs/externs.js"]
                                    :output-to "resources/public/audio/audio.js"}}
                        {:id "graphics"
                         :source-paths ["src/cljs/graphics"
