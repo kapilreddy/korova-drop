@@ -255,67 +255,69 @@ body { background: black; font-family: "Helvetica Neue", Helvetica, Arial, Verda
 #progress { height: 100%; width: 0%; background: rgba(29, 249, 255, 0.5); }
 
 /* line 103, ../sass/main.scss */
-.footer { font-weight: 200; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: absolute; bottom: 0; left: 0; font-size: 12px; padding: 0 0 3px 3px; width: 100%; }
+.footer { font-weight: 200; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: absolute; bottom: 0; left: 0; font-size: 12px; padding: 0 0 3px 3px; width: 100%; text-align: center; }
 /* line 112, ../sass/main.scss */
 .footer a { text-decoration: none; color: rgba(23, 199, 204, 0.7); }
-/* line 118, ../sass/main.scss */
+/* line 119, ../sass/main.scss */
 .footer span { padding: 0px 20px; }
-/* line 120, ../sass/main.scss */
+/* line 121, ../sass/main.scss */
 .footer span.desc { float: left; }
-/* line 123, ../sass/main.scss */
+/* line 124, ../sass/main.scss */
 .footer span.author { float: right; }
-
-/* line 130, ../sass/main.scss */
-#fadingBarsG { position: relative; width: 149px; height: 18px; }
+/* line 128, ../sass/main.scss */
+.footer span.instructions { margin-left: -100px; }
 
 /* line 135, ../sass/main.scss */
+#fadingBarsG { position: relative; width: 149px; height: 18px; }
+
+/* line 140, ../sass/main.scss */
 .fadingBarsG { position: absolute; top: 0; background-color: #000000; width: 18px; height: 18px; -moz-animation-name: bounce_fadingBarsG; -moz-animation-duration: 1.3s; -moz-animation-iteration-count: infinite; -moz-animation-direction: linear; -moz-transform: scale(0.3); -webkit-animation-name: bounce_fadingBarsG; -webkit-animation-duration: 1.3s; -webkit-animation-iteration-count: infinite; -webkit-animation-direction: linear; -webkit-transform: scale(0.3); -ms-animation-name: bounce_fadingBarsG; -ms-animation-duration: 1.3s; -ms-animation-iteration-count: infinite; -ms-animation-direction: linear; -ms-transform: scale(0.3); -o-animation-name: bounce_fadingBarsG; -o-animation-duration: 1.3s; -o-animation-iteration-count: infinite; -o-animation-direction: linear; -o-transform: scale(0.3); animation-name: bounce_fadingBarsG; animation-duration: 1.3s; animation-iteration-count: infinite; animation-direction: linear; transform: scale(0.3); }
 
-/* line 168, ../sass/main.scss */
+/* line 173, ../sass/main.scss */
 #fadingBarsG_1 { left: 0; -moz-animation-delay: 0.52s; -webkit-animation-delay: 0.52s; -ms-animation-delay: 0.52s; -o-animation-delay: 0.52s; animation-delay: 0.52s; }
 
-/* line 177, ../sass/main.scss */
+/* line 182, ../sass/main.scss */
 #fadingBarsG_2 { left: 19px; -moz-animation-delay: 0.65s; -webkit-animation-delay: 0.65s; -ms-animation-delay: 0.65s; -o-animation-delay: 0.65s; animation-delay: 0.65s; }
 
-/* line 186, ../sass/main.scss */
+/* line 191, ../sass/main.scss */
 #fadingBarsG_3 { left: 37px; -moz-animation-delay: 0.78s; -webkit-animation-delay: 0.78s; -ms-animation-delay: 0.78s; -o-animation-delay: 0.78s; animation-delay: 0.78s; }
 
-/* line 195, ../sass/main.scss */
+/* line 200, ../sass/main.scss */
 #fadingBarsG_4 { left: 56px; -moz-animation-delay: 0.91s; -webkit-animation-delay: 0.91s; -ms-animation-delay: 0.91s; -o-animation-delay: 0.91s; animation-delay: 0.91s; }
 
-/* line 204, ../sass/main.scss */
+/* line 209, ../sass/main.scss */
 #fadingBarsG_5 { left: 75px; -moz-animation-delay: 1.04s; -webkit-animation-delay: 1.04s; -ms-animation-delay: 1.04s; -o-animation-delay: 1.04s; animation-delay: 1.04s; }
 
-/* line 213, ../sass/main.scss */
+/* line 218, ../sass/main.scss */
 #fadingBarsG_6 { left: 93px; -moz-animation-delay: 1.17s; -webkit-animation-delay: 1.17s; -ms-animation-delay: 1.17s; -o-animation-delay: 1.17s; animation-delay: 1.17s; }
 
-/* line 222, ../sass/main.scss */
+/* line 227, ../sass/main.scss */
 #fadingBarsG_7 { left: 112px; -moz-animation-delay: 1.3s; -webkit-animation-delay: 1.3s; -ms-animation-delay: 1.3s; -o-animation-delay: 1.3s; animation-delay: 1.3s; }
 
-/* line 231, ../sass/main.scss */
+/* line 236, ../sass/main.scss */
 #fadingBarsG_8 { left: 130px; -moz-animation-delay: 1.43s; -webkit-animation-delay: 1.43s; -ms-animation-delay: 1.43s; -o-animation-delay: 1.43s; animation-delay: 1.43s; }
 
-@-moz-keyframes bounce_fadingBarsG { /* line 241, ../sass/main.scss */
+@-moz-keyframes bounce_fadingBarsG { /* line 246, ../sass/main.scss */
   0% { -moz-transform: scale(1); background-color: #000000; }
-  /* line 246, ../sass/main.scss */
+  /* line 251, ../sass/main.scss */
   100% { -moz-transform: scale(0.3); background-color: #FFFFFF; } }
 
-@-webkit-keyframes bounce_fadingBarsG { /* line 254, ../sass/main.scss */
+@-webkit-keyframes bounce_fadingBarsG { /* line 259, ../sass/main.scss */
   0% { -webkit-transform: scale(1); background-color: #000000; }
-  /* line 259, ../sass/main.scss */
+  /* line 264, ../sass/main.scss */
   100% { -webkit-transform: scale(0.3); background-color: #FFFFFF; } }
 
-@-ms-keyframes bounce_fadingBarsG { /* line 267, ../sass/main.scss */
+@-ms-keyframes bounce_fadingBarsG { /* line 272, ../sass/main.scss */
   0% { -ms-transform: scale(1); background-color: #000000; }
-  /* line 272, ../sass/main.scss */
+  /* line 277, ../sass/main.scss */
   100% { -ms-transform: scale(0.3); background-color: #FFFFFF; } }
 
-@-o-keyframes bounce_fadingBarsG { /* line 280, ../sass/main.scss */
+@-o-keyframes bounce_fadingBarsG { /* line 285, ../sass/main.scss */
   0% { -o-transform: scale(1); background-color: #000000; }
-  /* line 285, ../sass/main.scss */
+  /* line 290, ../sass/main.scss */
   100% { -o-transform: scale(0.3); background-color: #FFFFFF; } }
 
-@keyframes bounce_fadingBarsG { /* line 293, ../sass/main.scss */
+@keyframes bounce_fadingBarsG { /* line 298, ../sass/main.scss */
   0% { transform: scale(1); background-color: #000000; }
-  /* line 298, ../sass/main.scss */
+  /* line 303, ../sass/main.scss */
   100% { transform: scale(0.3); background-color: #FFFFFF; } }

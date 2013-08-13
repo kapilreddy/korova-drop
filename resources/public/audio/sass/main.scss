@@ -114,6 +114,7 @@ body {
         color: rgba(#17c7cc, 0.7);
     }
     width:100%;
+    text-align: center;
 
     span {
         padding: 0px 20px;
@@ -122,6 +123,10 @@ body {
         }
         &.author {
             float: right;
+        }
+
+        &.instructions {
+            margin-left: -100px;
         }
     }
 
