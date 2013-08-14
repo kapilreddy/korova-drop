@@ -1,6 +1,6 @@
 # Korova-drop
 
-An audio visualization project built using cljs, core.async and HTML5.
+korova-drop is an audio visualization project using cljs, core.async, HTML5 and webGL.
 
 To try it out locally run.
 
